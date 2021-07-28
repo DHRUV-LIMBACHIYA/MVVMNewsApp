@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.observe
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dhruvlimbachiya.mvvmnewsapp.R
 import com.dhruvlimbachiya.mvvmnewsapp.adapters.NewsAdapter
@@ -34,6 +35,12 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
 
         setUpRecyclerView()
         subscribeToLiveEvents()
+
+        mAdapter.setOnItemClickListener { article ->
+            findNavController().navigate(
+                SearchNewsFragmentDirections.actionSearchNewsFragmentToArticleFragment(article) // Pass Article from Breaking News Fragment to Article Fragment.
+            )
+        }
 
         /**
          *  RxJava implementation for search feature.

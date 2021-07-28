@@ -6,6 +6,7 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.observe
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dhruvlimbachiya.mvvmnewsapp.R
 import com.dhruvlimbachiya.mvvmnewsapp.adapters.NewsAdapter
@@ -26,6 +27,12 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
         mViewModel = (activity as NewsActivity).mViewModel
         setUpRecyclerView()
         subscribeToLiveEvents()
+
+        mAdapter.setOnItemClickListener { article ->
+            findNavController().navigate(
+                BreakingNewsFragmentDirections.actionBreakingNewsFragmentToArticleFragment(article) // Pass Article from Breaking News Fragment to Article Fragment.
+            )
+        }
     }
 
     /**
