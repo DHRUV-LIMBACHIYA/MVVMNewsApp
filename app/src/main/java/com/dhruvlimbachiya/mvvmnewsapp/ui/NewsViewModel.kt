@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dhruvlimbachiya.mvvmnewsapp.api.NewsRetrofitInstance
+import com.dhruvlimbachiya.mvvmnewsapp.model.Article
 import com.dhruvlimbachiya.mvvmnewsapp.model.NewsResponse
 import com.dhruvlimbachiya.mvvmnewsapp.repository.NewsRepository
 import com.dhruvlimbachiya.mvvmnewsapp.utils.Constants
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit
  * Created by Dhruv Limbachiya on 28-07-2021.
  */
 class NewsViewModel(
-    val repository: NewsRepository
+    private val repository: NewsRepository
 ) : ViewModel() {
 
     // Breaking News
@@ -44,12 +45,10 @@ class NewsViewModel(
      * Function for getting all the breaking news
      * @param countryCode = 2 Letter country code.
      */
-    private fun getAllBreakingNews(countryCode: String) {
-        viewModelScope.launch {
-            _breakingNewsResponse.postValue(Resource.Loading()) // Status = Loading.
-            val response = repository.getBreakingNews(countryCode, breakingNewsPageNumber)
-            _breakingNewsResponse.postValue(handleBreakingNewsResponse(response))
-        }
+    private fun getAllBreakingNews(countryCode: String) = viewModelScope.launch {
+        _breakingNewsResponse.postValue(Resource.Loading()) // Status = Loading.
+        val response = repository.getBreakingNews(countryCode, breakingNewsPageNumber)
+        _breakingNewsResponse.postValue(handleBreakingNewsResponse(response))
     }
 
 
@@ -57,12 +56,29 @@ class NewsViewModel(
      * Function for executing api call based on search query.
      * @param searchQuery = query to search.
      */
-    fun searchNews(searchQuery: String) {
-        viewModelScope.launch {
-            _searchNewsResponse.postValue(Resource.Loading()) // Status = Loading.
-            val response = repository.searchQuery(searchQuery, breakingNewsPageNumber)
-            _searchNewsResponse.postValue(handleSearchNewsResponse(response))
-        }
+    fun searchNews(searchQuery: String) = viewModelScope.launch {
+        _searchNewsResponse.postValue(Resource.Loading()) // Status = Loading.
+        val response = repository.searchQuery(searchQuery, breakingNewsPageNumber)
+        _searchNewsResponse.postValue(handleSearchNewsResponse(response))
+    }
+
+    /**
+     * Get the articles which are saved by user.
+     */
+    fun getSavedArticles() = repository.getSavedArticles()
+
+    /**
+     * Insert or update the article in Room DB.
+     */
+    fun insertOrUpdateArticle(article: Article) = viewModelScope.launch {
+        repository.insertOrUpdate(article)
+    }
+
+    /**
+     * Delete a particular article in Room DB.
+     */
+    fun deleteArticle(article: Article) = viewModelScope.launch {
+        repository.deleteArticle(article)
     }
 
     /**
