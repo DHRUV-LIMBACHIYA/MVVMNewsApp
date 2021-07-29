@@ -6,7 +6,10 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSavedNews"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        tools:listitem="@layout/item_article_preview"/>
 
 </FrameLayout>

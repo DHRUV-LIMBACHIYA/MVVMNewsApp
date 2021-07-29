@@ -7,8 +7,11 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.MultiTransformation
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.dhruvlimbachiya.mvvmnewsapp.R
 import com.dhruvlimbachiya.mvvmnewsapp.model.Article
+import com.dhruvlimbachiya.mvvmnewsapp.utils.convertTimestampToDate
 import kotlinx.android.synthetic.main.item_article_preview.view.*
 
 /**
@@ -42,11 +45,18 @@ class NewsAdapter : RecyclerView.Adapter<NewsAdapter.ArticleViewHolder>() {
     override fun onBindViewHolder(holder: ArticleViewHolder, position: Int) {
         val article = differ.currentList[position] // Current article.
         holder.itemView.apply {
-            Glide.with(this).load(article.urlToImage).into(ivArticleImage)
+            Glide.with(this)
+                .load(article.urlToImage)
+                .transform(MultiTransformation(RoundedCorners(14)))
+                .placeholder(R.drawable.news_placeholder)
+                .error(R.drawable.news_placeholder)
+                .into(ivArticleImage)
+
+
             tvSource.text = article.source?.name
             tvTitle.text = article.title
             tvDescription.text = article.description
-            tvPublishedAt.text = article.publishedAt
+            tvPublishedAt.text = article.publishedAt?.let { convertTimestampToDate(it) }
 
             setOnClickListener {
                 onItemClickListener?.let { listener ->

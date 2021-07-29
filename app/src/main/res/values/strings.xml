@@ -5,4 +5,8 @@
     <string name="text_breaking_news">Breaking News</string>
     <string name="text_saved_fragment">Saved Fragment</string>
     <string name="text_search_fragment">Search Fragment</string>
+    <string name="text_title">Title</string>
+    <string name="text_description">Description</string>
+    <string name="text_source">Source</string>
+    <string name="text_published_at">Published At</string>
 </resources>
