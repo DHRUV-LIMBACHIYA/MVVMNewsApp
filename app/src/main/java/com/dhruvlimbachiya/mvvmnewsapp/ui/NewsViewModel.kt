@@ -144,7 +144,7 @@ class NewsViewModel(
     }
 
     /**
-     * Make a safe search new call by checking various errors.
+     * Make a safe search news call by checking various errors.
      */
     private suspend fun safeSearchNewsCall(searchQuery: String){
         _searchNewsResponse.postValue(Resource.Loading()) // Status = Loading.
