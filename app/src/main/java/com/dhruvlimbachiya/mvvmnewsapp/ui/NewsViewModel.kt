@@ -1,10 +1,14 @@
 package com.dhruvlimbachiya.mvvmnewsapp.ui
 
+import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.ConnectivityManager.*
+import android.net.NetworkCapabilities.*
+import android.os.Build
 import android.text.TextUtils
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import com.dhruvlimbachiya.mvvmnewsapp.NewsApplication
 import com.dhruvlimbachiya.mvvmnewsapp.api.NewsRetrofitInstance
 import com.dhruvlimbachiya.mvvmnewsapp.model.Article
 import com.dhruvlimbachiya.mvvmnewsapp.model.NewsResponse
@@ -16,14 +20,16 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.launch
 import retrofit2.Response
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
  * Created by Dhruv Limbachiya on 28-07-2021.
  */
 class NewsViewModel(
+    application: Application,
     private val repository: NewsRepository
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     // Breaking News
     private val _breakingNewsResponse = MutableLiveData<Resource<NewsResponse>>()
@@ -46,9 +52,7 @@ class NewsViewModel(
      * @param countryCode = 2 Letter country code.
      */
     fun getAllBreakingNews(countryCode: String) = viewModelScope.launch {
-        _breakingNewsResponse.postValue(Resource.Loading()) // Status = Loading.
-        val response = repository.getBreakingNews(countryCode, breakingNewsPageNumber)
-        _breakingNewsResponse.postValue(handleBreakingNewsResponse(response))
+        safeBreakingNewsCall(countryCode)
     }
 
 
@@ -57,9 +61,7 @@ class NewsViewModel(
      * @param searchQuery = query to search.
      */
     fun searchNews(searchQuery: String) = viewModelScope.launch {
-        _searchNewsResponse.postValue(Resource.Loading()) // Status = Loading.
-        val response = repository.searchQuery(searchQuery, searchNewsPageNumber)
-        _searchNewsResponse.postValue(handleSearchNewsResponse(response))
+        safeSearchNewsCall(searchQuery)
     }
 
     /**
@@ -119,6 +121,75 @@ class NewsViewModel(
             }
         }
         return Resource.Error(response.message())
+    }
+
+    /**
+     * Make a safe breaking news call by checking various errors.
+     */
+    private suspend fun safeBreakingNewsCall(countryCode: String){
+        _breakingNewsResponse.postValue(Resource.Loading()) // Status = Loading.
+        try {
+            if(hasInternetConnection()){
+                val response = repository.getBreakingNews(countryCode, breakingNewsPageNumber)
+                _breakingNewsResponse.postValue(handleBreakingNewsResponse(response))
+            }else {
+                _breakingNewsResponse.postValue(Resource.Error("No internet connection"))
+            }
+        }catch (t: Throwable){
+            when(t){
+                is IOException ->  _breakingNewsResponse.postValue(Resource.Error("Network Failure"))
+                else ->  _breakingNewsResponse.postValue(Resource.Error("Unknown Error Occured : ${t.message}"))
+            }
+        }
+    }
+
+    /**
+     * Make a safe search new call by checking various errors.
+     */
+    private suspend fun safeSearchNewsCall(searchQuery: String){
+        _searchNewsResponse.postValue(Resource.Loading()) // Status = Loading.
+        try {
+            if(hasInternetConnection()){
+                val response = repository.searchQuery(searchQuery, searchNewsPageNumber)
+                _searchNewsResponse.postValue(handleSearchNewsResponse(response))
+            }else {
+                _searchNewsResponse.postValue(Resource.Error("No internet connection"))
+            }
+        }catch (t: Throwable){
+            when(t){
+                is IOException ->  _searchNewsResponse.postValue(Resource.Error("Network Failure"))
+                else ->  _searchNewsResponse.postValue(Resource.Error("Unknown Error Occured : ${t.message}"))
+            }
+        }
+    }
+
+    /**
+     * Checks the internet is available or not.
+      */
+    private fun hasInternetConnection(): Boolean{
+
+        val connectivityManager = getApplication<NewsApplication>().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            val activeNetwork = connectivityManager.activeNetwork ?: return false
+            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+            return when {
+                capabilities.hasTransport(TRANSPORT_WIFI) -> true
+                capabilities.hasTransport(TRANSPORT_CELLULAR) -> true
+                capabilities.hasTransport(TRANSPORT_ETHERNET) -> true
+                else -> false
+            }
+        }else{
+            connectivityManager.activeNetworkInfo?.run {
+                return when(type) {
+                    TYPE_WIFI -> true
+                    TYPE_MOBILE -> true
+                    TYPE_ETHERNET -> true
+                    else -> false
+                }
+            }
+        }
+        return false
     }
 
     /**
