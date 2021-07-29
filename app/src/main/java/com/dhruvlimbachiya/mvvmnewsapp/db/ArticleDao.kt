@@ -13,7 +13,7 @@ import com.dhruvlimbachiya.mvvmnewsapp.model.Article
 interface ArticleDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrUpdate(article: Article)
+    suspend fun insertOrUpdate(article: Article): Long
 
     @Query("SELECT * FROM articles")
     fun getAllSavedArticles(): LiveData<List<Article>>

@@ -26,7 +26,9 @@ class ArticleFragment : Fragment(R.layout.fragment_article) {
 
         webView.apply {
             webViewClient = WebViewClient() // The client is responsible for loading web page in our app not in browser.
-            loadUrl(article.url) // Load the web page url.
+            article.url?.let {
+                loadUrl(it) // Load the web page url.
+            }
         }
 
         fab.setOnClickListener {
